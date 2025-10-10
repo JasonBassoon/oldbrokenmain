@@ -1,0 +1,36 @@
+[build]
+command = "npx vite build"
+publish = "dist"
+
+[build.0]
+command = "npm run build"
+publish = "dist"
+
+[[headers]]
+for = "/*"
+
+[headers.values]
+X-Frame-Options = "DENY"
+X-Content-Type-Options = "nosniff"
+X-XSS-Protection = "1; mode=block"
+Referrer-Policy = "strict-origin-when-cross-origin"
+Permissions-Policy = "geolocation=(), microphone=(), camera=()"
+Content-Security-Policy = "      default-src 'self';\n      script-src 'self' 'unsafe-inline' 'unsafe-eval';\n      style-src 'self' 'unsafe-inline';\n      img-src 'self' data: https: blob:;\n      font-src 'self' data:;\n      connect-src 'self' https://*.supabase.co https://api.ipify.org;\n      frame-ancestors 'none';\n      base-uri 'self';\n      form-action 'self';\n    "
+Strict-Transport-Security = "max-age=31536000; includeSubDomains; preload"
+
+[[headers]]
+for = "/*.js"
+
+[headers.values]
+Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+for = "/*.css"
+
+[headers.values]
+Cache-Control = "public, max-age=31536000, immutable"
+
+[[redirects]]
+from = "/*"
+to = "/index.html"
+status = 200
