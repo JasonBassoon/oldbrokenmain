@@ -43,6 +43,22 @@ export default function Contact() {
 
       if (error) throw error
 
+      try {
+        const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
+        const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY
+
+        await fetch(`${supabaseUrl}/functions/v1/send-contact-notification`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${supabaseKey}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(formData),
+        })
+      } catch (emailError) {
+        console.warn('Could not send notification email:', emailError)
+      }
+
       setStatus('success')
       setFormData({ name: '', email: '', subject: '', message: '' })
 
