@@ -29,7 +29,7 @@ function App() {
 
       <footer className="footer">
         <div className="container">
-          <p>&copy; {new Date().getFullYear()} JasonsTechJourney. All rights reserved.</p>
+          <p>&copy; 2025 JasonsTechJourney.com</p>
         </div>
       </footer>
     </div>
