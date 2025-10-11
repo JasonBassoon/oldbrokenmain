@@ -9,7 +9,7 @@ function App() {
     <div className="app">
       <nav className="navbar">
         <div className="container">
-          <div className="nav-brand">Portfolio</div>
+          <div className="nav-brand">Jason's Tech Journey</div>
           <div className="nav-links">
             <a href="#projects">Projects</a>
             <a href="#learning">Learning</a>
@@ -29,7 +29,7 @@ function App() {
 
       <footer className="footer">
         <div className="container">
-          <p>&copy; {new Date().getFullYear()} Cybersecurity Portfolio. All rights reserved.</p>
+          <p>&copy; {new Date().getFullYear()} JasonsTechJourney. All rights reserved.</p>
         </div>
       </footer>
     </div>
