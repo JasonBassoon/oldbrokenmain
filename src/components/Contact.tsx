@@ -43,6 +43,20 @@ export default function Contact() {
 
       if (error) throw error
 
+      const apiUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/send-contact-notification`
+
+      try {
+        await fetch(apiUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(formData)
+        })
+      } catch (emailError) {
+        console.warn('Email notification failed, but form was saved:', emailError)
+      }
+
       setStatus('success')
       setFormData({ name: '', email: '', subject: '', message: '' })
 
