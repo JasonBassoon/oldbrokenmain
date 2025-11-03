@@ -35,7 +35,7 @@ Deno.serve(async (req: Request) => {
 
     const { data, error } = await resend.emails.send({
       from: "Portfolio Contact <onboarding@resend.dev>",
-      to: ["hirejasone@gmail.com"],
+      to: ["spamforacautiousman@gmail.com"],
       replyTo: email,
       subject: `Portfolio Contact: ${subject}`,
       html: `
