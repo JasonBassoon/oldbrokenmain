@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { supabase, type Project } from '../lib/supabase'
+import ProjectDocumentation from './ProjectDocumentation'
 
 export default function Projects() {
   const [projects, setProjects] = useState<Project[]>([])
@@ -86,6 +87,8 @@ export default function Projects() {
                     </a>
                   )}
                 </div>
+
+                <ProjectDocumentation projectId={project.id} />
               </div>
             </article>
           ))}

@@ -49,3 +49,14 @@ export type ContactSubmission = {
   subject: string
   message: string
 }
+
+export type DocumentationStep = {
+  id: string
+  project_id: string
+  step_number: number
+  title: string
+  commands: string[]
+  rationale: string
+  evidence_notes: string | null
+  created_at: string
+}
