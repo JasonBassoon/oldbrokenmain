@@ -4,6 +4,8 @@
 
 This is an optimized SOC lab implementation plan for your Dell XPS 9320 with 16 GB RAM running Ubuntu. This plan improves upon the baseline by adding phased deployment, resource optimization strategies, snapshot management, and comprehensive attack simulation scenarios.
 
+**Strategic Windows Delay:** Windows ISOs have time-limited evaluation licenses (180 days for Server, 90 days for Win10/11). This plan delays Windows downloads and deployment until Phase 5, allowing you to build and validate your core infrastructure (hypervisor, networking, SIEM, attack platform) first. This maximizes your Windows evaluation period and reduces pressure during the learning process.
+
 ## System Analysis
 
 ### Verified Hardware Capabilities
@@ -250,48 +252,78 @@ Attack (Kali) → Target (Win Client) → Logs → Elastic SIEM
 - Fleet Server running
 - Test log ingestion with sample data
 
-### Phase 3: Windows Infrastructure (Week 3)
+### Phase 3: Attack Platform (Week 3)
+**Goal:** Deploy Kali and validate infrastructure
+
+1. Deploy Kali Linux VM
+2. Update all tools
+3. Test network connectivity
+4. Run basic reconnaissance against pfSense
+5. Verify network segmentation
+
+**Validation:**
+- Kali has internet access through pfSense
+- Can reach all socnet IPs
+- Basic port scans visible in pfSense logs
+- Logs forwarding to Elastic (if configured)
+
+**Why Now:** Validates your entire infrastructure (hypervisor, networks, SIEM) before Windows evaluation clock starts ticking
+
+### Phase 4: Infrastructure Validation (Week 4)
+**Goal:** Test and optimize core infrastructure
+
+1. Run extended Elastic log ingestion tests
+2. Configure pfSense log forwarding to Elastic
+3. Set up Suricata IDS on pfSense
+4. Create basic detection dashboards
+5. Document baseline performance metrics
+
+**Validation:**
+- Elastic handling log volume well
+- pfSense logs visible in Kibana
+- IDS alerts triggering correctly
+- System stable with 3 VMs running
+
+**Why Now:** Ensures solid foundation and gives you time to troubleshoot before adding Windows complexity
+
+### Phase 5: Windows Infrastructure (Week 5+)
 **Goal:** Build Active Directory environment
 
-1. Deploy Windows Server
-2. Promote to Domain Controller
-3. Configure AD DS and DNS
-4. Create user accounts and OUs
-5. Install Sysmon and Elastic Agent
+**IMPORTANT:** Download Windows ISOs just before starting this phase to maximize evaluation period
+- Windows Server 2022: 180-day evaluation
+- Windows 10/11: 90-day evaluation
+
+**Steps:**
+1. Download Windows Server 2022 Evaluation ISO
+2. Deploy Windows Server VM
+3. Promote to Domain Controller
+4. Configure AD DS and DNS
+5. Create user accounts and OUs
+6. Install Sysmon and Elastic Agent
 
 **Validation:**
 - Domain services functional
 - DNS resolving correctly
 - Logs flowing to Elastic
+- Authentication working
 
-### Phase 4: Endpoints & Monitoring (Week 4)
-**Goal:** Deploy monitored endpoints
+### Phase 6: Endpoints & Attack Simulation (Week 6+)
+**Goal:** Deploy monitored endpoints and run attack scenarios
 
-1. Deploy Windows 10/11 client
-2. Join to domain
-3. Install Sysmon with production config
-4. Deploy Elastic Agent
-5. Verify full log visibility
+**Steps:**
+1. Download Windows 10/11 Evaluation ISO (if not already done)
+2. Deploy Windows client VM
+3. Join to domain
+4. Install Sysmon with production config
+5. Deploy Elastic Agent
+6. Run full attack simulation scenarios
 
 **Validation:**
 - Authentication working
 - Process creation logs visible
 - Network activity monitored
 - PowerShell logging functional
-
-### Phase 5: Attack Platform (Week 5)
-**Goal:** Deploy Kali and test detection
-
-1. Deploy Kali Linux VM
-2. Update all tools
-3. Run basic reconnaissance
-4. Verify alerts in Elastic
-5. Tune detection rules
-
-**Validation:**
-- Port scans detected
-- Authentication attempts logged
-- Network anomalies visible
+- Attack scenarios generating detectable alerts
 
 ## Installation Commands & Scripts
 
@@ -364,26 +396,38 @@ sudo virsh net-list
 ```
 
 ### Step 3: Download Required ISOs
+
+**Download Now (Phase 1-4):**
 ```bash
 # Create ISO directory
 mkdir -p ~/ISOs
+cd ~/ISOs
 
 # Download pfSense (example - verify current version)
-cd ~/ISOs
 wget https://atxfiles.netgate.com/mirror/downloads/pfSense-CE-2.7.2-RELEASE-amd64.iso.gz
 gunzip pfSense-CE-2.7.2-RELEASE-amd64.iso.gz
 
 # Download Ubuntu Server
 wget https://releases.ubuntu.com/22.04/ubuntu-22.04.3-live-server-amd64.iso
 
-# Note: Windows ISOs require Microsoft account
-# Download from: https://www.microsoft.com/en-us/evalcenter/
-# - Windows Server 2022 Evaluation
-# - Windows 10/11 Enterprise Evaluation
-
 # Download Kali Linux
 wget https://cdimage.kali.org/kali-2024.1/kali-linux-2024.1-installer-amd64.iso
 ```
+
+**Download Later (Just Before Phase 5):**
+
+Windows evaluation ISOs have time-limited licenses. Download these ONLY when you're ready to build the Windows infrastructure:
+
+- **Windows Server 2022 Evaluation:** 180-day license
+- **Windows 10/11 Enterprise Evaluation:** 90-day license
+
+Download from: https://www.microsoft.com/en-us/evalcenter/
+
+**Why Wait?**
+- Maximizes your evaluation period
+- Ensures you have a stable, tested infrastructure first
+- You'll also have Windows VMs available when you spin up AWS cloud network
+- Reduces pressure to rush through Windows configuration
 
 ### Step 4: Create pfSense VM
 ```bash
