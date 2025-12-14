@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SOC Lab Plan - Claude (Optimized)</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 40px 20px;
+            color: #333;
+            background: #fff;
+        }
+        h1 {
+            color: #2c3e50;
+            border-bottom: 3px solid #3498db;
+            padding-bottom: 10px;
+            margin-bottom: 30px;
+        }
+        h2 {
+            color: #2980b9;
+            margin-top: 40px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #ecf0f1;
+        }
+        h3 {
+            color: #34495e;
+            margin-top: 30px;
+        }
+        h4 {
+            color: #7f8c8d;
+            margin-top: 20px;
+        }
+        pre {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-left: 4px solid #3498db;
+            padding: 15px;
+            overflow-x: auto;
+            border-radius: 4px;
+            font-size: 13px;
+        }
+        code {
+            background: #f1f3f5;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 20px 0;
+        }
+        th, td {
+            border: 1px solid #dee2e6;
+            padding: 12px;
+            text-align: left;
+        }
+        th {
+            background: #3498db;
+            color: white;
+            font-weight: 600;
+        }
+        tr:nth-child(even) {
+            background: #f8f9fa;
+        }
+        .highlight {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        .note {
+            background: #d1ecf1;
+            border-left: 4px solid #17a2b8;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        ul, ol {
+            margin: 15px 0;
+            padding-left: 30px;
+        }
+        li {
+            margin: 8px 0;
+        }
+        @media print {
+            body {
+                max-width: 100%;
+                padding: 20px;
+            }
+            pre {
+                page-break-inside: avoid;
+            }
+            h1, h2, h3 {
+                page-break-after: avoid;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1>SOC Lab Plan - Claude (Optimized)</h1>
+
+    <h2>Executive Summary</h2>
+    <p>This is an optimized SOC lab implementation plan for your Dell XPS 9320 with 16 GB RAM running Ubuntu. This plan improves upon the baseline by adding phased deployment, resource optimization strategies, snapshot management, and comprehensive attack simulation scenarios.</p>
+
+    <div class="highlight">
+        <strong>Strategic Windows Delay:</strong> Windows ISOs have time-limited evaluation licenses (180 days for Server, 90 days for Win10/11). This plan delays Windows downloads and deployment until Phase 5, allowing you to build and validate your core infrastructure (hypervisor, networking, SIEM, attack platform) first. This maximizes your Windows evaluation period and reduces pressure during the learning process.
+    </div>
+
+    <h2>System Analysis</h2>
+
+    <h3>Verified Hardware Capabilities</h3>
+    <ul>
+        <li><strong>CPU:</strong> 16 logical cores (Intel 12th/13th gen with VT-x)</li>
+        <li><strong>RAM:</strong> 16 GB (15.4 GB usable)</li>
+        <li><strong>Virtualization:</strong> KVM with VT-x hardware acceleration</li>
+        <li><strong>Storage:</strong> SSD recommended for VM performance</li>
+    </ul>
+
+    <h3>Performance Considerations</h3>
+    <p>Your system can comfortably handle this lab with the following optimizations:</p>
+    <ul>
+        <li>Run 3-4 VMs simultaneously (hot VMs)</li>
+        <li>Suspend unused VMs to free RAM</li>
+        <li>Use thin provisioning for disk space</li>
+        <li>Leverage KVM's memory ballooning</li>
+    </ul>
+
+    <h2>Lab Architecture Overview</h2>
+
+    <h3>Network Topology</h3>
+    <pre>
+┌─────────────────────────────────────────────────────────────┐
+│                        Internet                              │
+└───────────────────────┬─────────────────────────────────────┘
+                        │
+                    [virbr0/NAT]
+                        │
+┌───────────────────────▼──────────────────────────────────────┐
+│                 pfSense Firewall                             │
+│  WAN: virbr0 (NAT)  │  LAN: socnet (10.10.10.1)            │
+└─────────────────────┬────────────────────────────────────────┘
+                      │
+                [socnet: 10.10.10.0/24]
+                      │
+        ┌─────────────┼─────────────┬─────────────┐
+        │             │             │             │
+   ┌────▼────┐   ┌───▼────┐   ┌───▼─────┐  ┌───▼────┐
+   │ Elastic │   │Windows │   │ Windows │  │  Kali  │
+   │  SIEM   │   │   DC   │   │ Client  │  │ Attack │
+   │.10      │   │.20     │   │.30      │  │.40     │
+   └─────────┘   └────────┘   └─────────┘  └────────┘
+    </pre>
+
+    <h3>Data Flow</h3>
+    <pre>
+Attack (Kali) → Target (Win Client) → Logs → Elastic SIEM
+                     ↓
+              Windows DC (AD)
+                     ↓
+              Authentication Logs → Elastic
+                     ↓
+              pfSense (Firewall) → Network Logs → Elastic
+    </pre>
+
+    <h2>VM Specifications (Optimized)</h2>
+
+    <h3>Resource Allocation Strategy</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>VM</th>
+                <th>vCPU</th>
+                <th>RAM (GB)</th>
+                <th>Disk (GB)</th>
+                <th>Priority</th>
+                <th>Notes</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>pfSense</td>
+                <td>1</td>
+                <td>1</td>
+                <td>10</td>
+                <td>Medium</td>
+                <td>Can suspend during analysis</td>
+            </tr>
+            <tr>
+                <td>Elastic Server</td>
+                <td>4</td>
+                <td>5</td>
+                <td>60</td>
+                <td>HIGH</td>
+                <td>Core SIEM - always running</td>
+            </tr>
+            <tr>
+                <td>Windows DC</td>
+                <td>2</td>
+                <td>3</td>
+                <td>50</td>
+                <td>HIGH</td>
+                <td>Active Directory services</td>
+            </tr>
+            <tr>
+                <td>Windows Client</td>
+                <td>2</td>
+                <td>3</td>
+                <td>40</td>
+                <td>HIGH</td>
+                <td>Primary attack target</td>
+            </tr>
+            <tr>
+                <td>Kali Linux</td>
+                <td>2</td>
+                <td>2</td>
+                <td>30</td>
+                <td>LOW</td>
+                <td>Suspend when not attacking</td>
+            </tr>
+            <tr>
+                <td><strong>TOTAL</strong></td>
+                <td><strong>11</strong></td>
+                <td><strong>14 GB</strong></td>
+                <td><strong>190 GB</strong></td>
+                <td></td>
+                <td>Leaves 2 GB for host</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <h2>Phased Implementation Plan</h2>
+
+    <h3>Phase 1: Foundation (Week 1)</h3>
+    <p><strong>Goal:</strong> Get hypervisor and networking working</p>
+    <ol>
+        <li>Install KVM stack</li>
+        <li>Create virtual networks</li>
+        <li>Deploy pfSense firewall</li>
+        <li>Test internet connectivity</li>
+        <li>Verify internal network isolation</li>
+    </ol>
+    <div class="note">
+        <strong>Validation:</strong>
+        <ul>
+            <li>VMs can reach internet through pfSense</li>
+            <li>Internal network is isolated</li>
+            <li>pfSense web UI accessible</li>
+        </ul>
+    </div>
+
+    <h3>Phase 2: SIEM Deployment (Week 2)</h3>
+    <p><strong>Goal:</strong> Get Elastic Stack operational</p>
+    <ol>
+        <li>Deploy Ubuntu Server VM</li>
+        <li>Install Elasticsearch + Kibana</li>
+        <li>Configure Fleet Server</li>
+        <li>Set up data retention policies</li>
+        <li>Create basic dashboards</li>
+    </ol>
+    <div class="note">
+        <strong>Validation:</strong>
+        <ul>
+            <li>Kibana web UI accessible</li>
+            <li>Fleet Server running</li>
+            <li>Test log ingestion with sample data</li>
+        </ul>
+    </div>
+
+    <h3>Phase 3: Attack Platform (Week 3)</h3>
+    <p><strong>Goal:</strong> Deploy Kali and validate infrastructure</p>
+    <ol>
+        <li>Deploy Kali Linux VM</li>
+        <li>Update all tools</li>
+        <li>Test network connectivity</li>
+        <li>Run basic reconnaissance against pfSense</li>
+        <li>Verify network segmentation</li>
+    </ol>
+    <div class="note">
+        <strong>Why Now:</strong> Validates your entire infrastructure (hypervisor, networks, SIEM) before Windows evaluation clock starts ticking
+    </div>
+
+    <h3>Phase 4: Infrastructure Validation (Week 4)</h3>
+    <p><strong>Goal:</strong> Test and optimize core infrastructure</p>
+    <ol>
+        <li>Run extended Elastic log ingestion tests</li>
+        <li>Configure pfSense log forwarding to Elastic</li>
+        <li>Set up Suricata IDS on pfSense</li>
+        <li>Create basic detection dashboards</li>
+        <li>Document baseline performance metrics</li>
+    </ol>
+
+    <h3>Phase 5: Windows Infrastructure (Week 5+)</h3>
+    <p><strong>Goal:</strong> Build Active Directory environment</p>
+    <div class="highlight">
+        <strong>IMPORTANT:</strong> Download Windows ISOs just before starting this phase to maximize evaluation period
+        <ul>
+            <li>Windows Server 2022: 180-day evaluation</li>
+            <li>Windows 10/11: 90-day evaluation</li>
+        </ul>
+    </div>
+
+    <h3>Phase 6: Endpoints & Attack Simulation (Week 6+)</h3>
+    <p><strong>Goal:</strong> Deploy monitored endpoints and run attack scenarios</p>
+
+    <h2>Installation Commands</h2>
+
+    <h3>Step 1: Install KVM on Ubuntu</h3>
+    <pre><code># Update system
+sudo apt update && sudo apt upgrade -y
+
+# Install KVM and tools
+sudo apt install -y qemu-kvm libvirt-daemon-system libvirt-clients \
+  bridge-utils virt-manager virtinst cpu-checker
+
+# Verify virtualization support
+kvm-ok
+
+# Add your user to libvirt groups
+sudo usermod -aG libvirt,kvm $USER
+
+# Enable and start libvirtd
+sudo systemctl enable --now libvirtd
+
+# Verify KVM modules loaded
+lsmod | grep kvm</code></pre>
+
+    <h3>Step 2: Create Virtual Networks</h3>
+    <pre><code># Verify default NAT network exists
+sudo virsh net-list --all
+
+# Create isolated SOC lab network
+cat > socnet.xml << 'EOF'
+&lt;network&gt;
+  &lt;name&gt;socnet&lt;/name&gt;
+  &lt;forward mode='nat'&gt;
+    &lt;nat&gt;
+      &lt;port start='1024' end='65535'/&gt;
+    &lt;/nat&gt;
+  &lt;/forward&gt;
+  &lt;bridge name='virbr1' stp='on' delay='0'/&gt;
+  &lt;ip address='10.10.10.1' netmask='255.255.255.0'&gt;
+    &lt;dhcp&gt;
+      &lt;range start='10.10.10.100' end='10.10.10.200'/&gt;
+      &lt;host mac='52:54:00:01:00:10' name='elastic' ip='10.10.10.10'/&gt;
+      &lt;host mac='52:54:00:01:00:20' name='dc' ip='10.10.10.20'/&gt;
+      &lt;host mac='52:54:00:01:00:30' name='client' ip='10.10.10.30'/&gt;
+      &lt;host mac='52:54:00:01:00:40' name='kali' ip='10.10.10.40'/&gt;
+    &lt;/dhcp&gt;
+  &lt;/ip&gt;
+&lt;/network&gt;
+EOF
+
+# Define and start the network
+sudo virsh net-define socnet.xml
+sudo virsh net-start socnet
+sudo virsh net-autostart socnet</code></pre>
+
+    <h3>Step 3: Create pfSense VM</h3>
+    <pre><code>sudo virt-install \
+  --name pfsense \
+  --ram 1024 \
+  --vcpus 1 \
+  --cpu host-passthrough \
+  --disk path=/var/lib/libvirt/images/pfsense.qcow2,size=10,format=qcow2,bus=virtio \
+  --network network=default,model=virtio \
+  --network network=socnet,model=virtio \
+  --graphics vnc,listen=127.0.0.1 \
+  --cdrom ~/ISOs/pfSense-CE-2.7.2-RELEASE-amd64.iso \
+  --os-variant freebsd13.0 \
+  --boot uefi</code></pre>
+
+    <h2>Attack Simulation Scenarios</h2>
+
+    <h3>Scenario 1: Network Reconnaissance</h3>
+    <p><strong>Objective:</strong> Detect network scanning activity</p>
+    <pre><code># Host discovery
+sudo nmap -sn 10.10.10.0/24
+
+# Port scanning
+sudo nmap -sS -p- 10.10.10.30
+
+# Service enumeration
+sudo nmap -sV -sC 10.10.10.30</code></pre>
+    <div class="note">
+        <strong>Expected Detections:</strong>
+        <ul>
+            <li>Multiple connection attempts from single source</li>
+            <li>Sequential port scanning pattern</li>
+            <li>Elastic SIEM alert: "Network Scan Detected"</li>
+        </ul>
+    </div>
+
+    <h3>Scenario 2: Brute Force Attack</h3>
+    <p><strong>Objective:</strong> Detect authentication attacks</p>
+    <pre><code># RDP brute force
+hydra -l jdoe -P /usr/share/wordlists/rockyou.txt rdp://10.10.10.30</code></pre>
+    <div class="note">
+        <strong>Expected Detections:</strong>
+        <ul>
+            <li>Multiple failed authentication attempts</li>
+            <li>Windows Event ID 4625 (Failed logon)</li>
+            <li>Elastic SIEM alert: "Brute Force Attack Detected"</li>
+        </ul>
+    </div>
+
+    <h3>Scenario 3: Credential Dumping</h3>
+    <p><strong>Objective:</strong> Detect credential access</p>
+    <pre><code># Mimikatz credential dump
+.\mimikatz.exe "privilege::debug" "sekurlsa::logonpasswords" "exit"</code></pre>
+    <div class="note">
+        <strong>Expected Detections:</strong>
+        <ul>
+            <li>Sysmon Event ID 10 (Process Access) - LSASS memory read</li>
+            <li>Mimikatz process execution</li>
+            <li>Elastic alert: "Credential Dumping Activity"</li>
+        </ul>
+    </div>
+
+    <h2>Resource Management</h2>
+
+    <h3>VM Lifecycle Commands</h3>
+    <pre><code># Start VMs
+sudo virsh start pfsense
+sudo virsh start elastic
+
+# Suspend VMs to save RAM
+sudo virsh suspend kali
+
+# Resume VMs
+sudo virsh resume kali
+
+# List running VMs
+sudo virsh list</code></pre>
+
+    <h3>Snapshot Management</h3>
+    <pre><code># Create snapshot before attack
+sudo virsh snapshot-create-as windows-client --name "pre-attack-clean"
+
+# List snapshots
+sudo virsh snapshot-list windows-client
+
+# Revert to snapshot
+sudo virsh snapshot-revert windows-client "pre-attack-clean"</code></pre>
+
+    <h2>Learning Objectives</h2>
+
+    <h3>Blue Team Skills</h3>
+    <ol>
+        <li>SIEM deployment and configuration</li>
+        <li>Log analysis and correlation</li>
+        <li>Threat detection rule creation</li>
+        <li>Incident investigation workflows</li>
+        <li>Network traffic analysis</li>
+        <li>Windows event log interpretation</li>
+        <li>Endpoint detection strategies</li>
+    </ol>
+
+    <h3>Red Team Skills</h3>
+    <ol>
+        <li>Network reconnaissance</li>
+        <li>Vulnerability assessment</li>
+        <li>Exploitation techniques</li>
+        <li>Post-exploitation</li>
+        <li>Lateral movement</li>
+        <li>Credential harvesting</li>
+        <li>Persistence mechanisms</li>
+    </ol>
+
+    <h2>Conclusion</h2>
+    <p>This lab provides a complete, enterprise-realistic SOC environment for hands-on learning. Follow the phased approach, validate each component, and systematically build your skills through the attack scenarios.</p>
+
+    <div class="highlight">
+        <strong>Key Success Factors:</strong>
+        <ul>
+            <li>Take snapshots frequently</li>
+            <li>Document all changes</li>
+            <li>Run attack scenarios multiple times</li>
+            <li>Tune detection rules based on results</li>
+            <li>Build muscle memory for investigation workflows</li>
+        </ul>
+    </div>
+
+    <p><strong>Your 16 GB system is perfect for this lab.</strong> Start with Phase 1 and progress systematically. Each phase builds on the previous, creating a solid foundation for SOC analyst skills.</p>
+</body>
+</html>
