@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SOC Lab Documentation</title>
+    <style>
+        body {
+            max-width: 900px;
+            margin: 40px auto;
+            padding: 20px;
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+        }
+        pre {
+            background: #f4f4f4;
+            padding: 15px;
+            overflow-x: auto;
+            border-radius: 5px;
+        }
+        h1, h2 {
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+<h1>Home SOC Lab - Detailed Implementation Documentation</h1>
+
+<h2>Step 1: Install KVM/QEMU Virtualization Stack</h2>
+
+<p><strong>Commands:</strong></p>
+<pre>
+sudo apt update && sudo apt upgrade -y
+sudo apt install -y qemu-kvm libvirt-daemon-system libvirt-clients bridge-utils virt-manager virtinst cpu-checker
+kvm-ok
+sudo usermod -aG libvirt,kvm $USER
+sudo systemctl enable --now libvirtd
+lsmod | grep kvm
+</pre>
+
+<p><strong>Rationale:</strong> KVM provides hardware-accelerated virtualization on Linux, essential for running multiple VMs efficiently. This foundation enables the entire SOC lab infrastructure.</p>
+
+<p><strong>Evidence & Verification:</strong> Verified VT-x virtualization support enabled. KVM modules loaded successfully (kvm_intel). System ready for VM deployment.</p>
+
+<hr>
+
+<h2>Step 2: Create Virtual Networks</h2>
+
+<p><strong>Commands:</strong></p>
+<pre>
+sudo virsh net-list --all
+sudo virsh net-start default
+sudo virsh net-autostart default
+sudo virsh net-define socnet.xml
+sudo virsh net-start socnet
+sudo virsh net-autostart socnet
+</pre>
+
+<p><strong>Rationale:</strong> Proper network segmentation isolates the SOC lab from the host system while allowing controlled internet access through pfSense. The socnet provides an isolated environment for attack simulations.</p>
+
+<p><strong>Evidence & Verification:</strong> Created socnet (10.10.10.0/24) with DHCP reservations for all lab VMs. Default NAT network active for WAN connectivity.</p>
+
+<hr>
+
+<h2>Step 3: Download Required ISOs</h2>
+
+<p><strong>Commands:</strong></p>
+<pre>
+mkdir -p ~/ISOs
+cd ~/ISOs
+wget https://atxfiles.netgate.com/mirror/downloads/pfSense-CE-2.7.2-RELEASE-amd64.iso.gz
+gunzip pfSense-CE-2.7.2-RELEASE-amd64.iso.gz
+wget https://releases.ubuntu.com/22.04/ubuntu-22.04.3-live-server-amd64.iso
+wget https://cdimage.kali.org/kali-2025.1/kali-linux-2025.1-installer-amd64.iso
+</pre>
+
+<p><strong>Rationale:</strong> Gathering installation media for all VM operating systems. Using evaluation versions for Windows systems to stay within licensing compliance.</p>
+
+<p><strong>Evidence & Verification:</strong> Downloaded pfSense CE 2.7.2, Ubuntu Server 22.04 LTS, and Kali Linux 2025.1. Windows ISOs to be downloaded from Microsoft Evaluation Center.</p>
+
+<hr>
+
+<h2>Step 4: Deploy pfSense Firewall VM</h2>
+
+<p><strong>Commands:</strong></p>
+<pre>
+sudo virt-install --name pfsense --ram 1024 --vcpus 1 --cpu host-passthrough --disk path=/var/lib/libvirt/images/pfsense.qcow2,size=10,format=qcow2,bus=virtio --network network=default,model=virtio --network network=socnet,model=virtio --graphics vnc,listen=127.0.0.1 --cdrom ~/ISOs/pfSense-CE-2.7.2-RELEASE-amd64.iso --os-variant freebsd13.0 --boot uefi
+</pre>
+
+<p><strong>Rationale:</strong> pfSense serves as the network gateway, providing firewall capabilities, IDS/IPS through Suricata, and logging for network traffic analysis. This is the first line of defense in the SOC lab.</p>
+
+<p><strong>Evidence & Verification:</strong> pfSense VM created with dual NICs (WAN on NAT, LAN on socnet). Configured firewall rules and enabled Suricata IDS with ET Open ruleset.</p>
+
+<hr>
+
+<h2>Step 5: Validate Network Connectivity</h2>
+
+<p><strong>Commands:</strong></p>
+<pre>
+sudo virsh list
+ping -c 4 10.10.10.1
+sudo virsh net-dhcp-leases socnet
+</pre>
+
+<p><strong>Rationale:</strong> Testing ensures proper network segmentation and internet access before deploying additional VMs. Validates pfSense routing and firewall configuration.</p>
+
+<p><strong>Evidence & Verification:</strong> pfSense responsive on 10.10.10.1. WAN interface receiving DHCP from NAT network. LAN interface serving DHCP to socnet. Internet connectivity validated through pfSense gateway.</p>
+
+</body>
+</html>
