@@ -9,6 +9,7 @@ export default function ProjectDocumentation({ projectId }: ProjectDocumentation
   const [steps, setSteps] = useState<DocumentationStep[]>([])
   const [loading, setLoading] = useState(true)
   const [expanded, setExpanded] = useState(false)
+  const [copied, setCopied] = useState(false)
 
   useEffect(() => {
     fetchDocumentation()
@@ -31,6 +32,30 @@ export default function ProjectDocumentation({ projectId }: ProjectDocumentation
     }
   }
 
+  function formatDocumentationText() {
+    return steps.map(step => {
+      let text = `Step ${step.step_number}: ${step.title}\n\n`
+      text += `Commands:\n${step.commands.map(cmd => `- ${cmd}`).join('\n')}\n\n`
+      text += `Rationale:\n${step.rationale}\n\n`
+      if (step.evidence_notes) {
+        text += `Evidence & Verification:\n${step.evidence_notes}\n`
+      }
+      text += '\n---\n\n'
+      return text
+    }).join('')
+  }
+
+  async function copyToClipboard() {
+    const text = formatDocumentationText()
+    try {
+      await navigator.clipboard.writeText(text)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    } catch (error) {
+      console.error('Failed to copy:', error)
+    }
+  }
+
   if (loading) {
     return <div className="documentation-loading">Loading documentation...</div>
   }
@@ -41,12 +66,24 @@ export default function ProjectDocumentation({ projectId }: ProjectDocumentation
 
   return (
     <div className="project-documentation">
-      <button
-        className="documentation-toggle"
-        onClick={() => setExpanded(!expanded)}
-      >
-        {expanded ? '▼' : '▶'} View Detailed Documentation ({steps.length} Steps)
-      </button>
+      <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
+        <button
+          className="documentation-toggle"
+          onClick={() => setExpanded(!expanded)}
+        >
+          {expanded ? '▼' : '▶'} View Detailed Documentation ({steps.length} Steps)
+        </button>
+
+        {expanded && (
+          <button
+            className="btn btn-small"
+            onClick={copyToClipboard}
+            style={{ fontSize: '14px' }}
+          >
+            {copied ? '✓ Copied!' : '📋 Copy All'}
+          </button>
+        )}
+      </div>
 
       {expanded && (
         <div className="documentation-steps">
