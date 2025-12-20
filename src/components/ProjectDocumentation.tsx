@@ -32,17 +32,33 @@ export default function ProjectDocumentation({ projectId }: ProjectDocumentation
     }
   }
 
+  const overviewSections = steps.filter(step => step.step_number === 0)
+  const implementationSteps = steps.filter(step => step.step_number > 0)
+
   function formatDocumentationText() {
-    return steps.map(step => {
-      let text = `Step ${step.step_number}: ${step.title}\n\n`
+    let text = ''
+
+    overviewSections.forEach(section => {
+      text += `${section.title}\n\n`
+      text += `${section.commands.map(cmd => `${cmd}`).join('\n')}\n\n`
+      text += `Rationale:\n${section.rationale}\n\n`
+      if (section.evidence_notes) {
+        text += `Evidence & Verification:\n${section.evidence_notes}\n`
+      }
+      text += '\n---\n\n'
+    })
+
+    implementationSteps.forEach(step => {
+      text += `Step ${step.step_number}: ${step.title}\n\n`
       text += `Commands:\n${step.commands.map(cmd => `- ${cmd}`).join('\n')}\n\n`
       text += `Rationale:\n${step.rationale}\n\n`
       if (step.evidence_notes) {
         text += `Evidence & Verification:\n${step.evidence_notes}\n`
       }
       text += '\n---\n\n'
-      return text
-    }).join('')
+    })
+
+    return text
   }
 
   async function copyToClipboard() {
@@ -71,7 +87,7 @@ export default function ProjectDocumentation({ projectId }: ProjectDocumentation
           className="documentation-toggle"
           onClick={() => setExpanded(!expanded)}
         >
-          {expanded ? '▼' : '▶'} View Detailed Documentation ({steps.length} Steps)
+          {expanded ? '▼' : '▶'} View Detailed Documentation ({implementationSteps.length} Steps)
         </button>
 
         {expanded && (
@@ -87,7 +103,35 @@ export default function ProjectDocumentation({ projectId }: ProjectDocumentation
 
       {expanded && (
         <div className="documentation-steps">
-          {steps.map((step) => (
+          {overviewSections.map((section) => (
+            <div key={section.id} className="documentation-step">
+              <div className="step-header">
+                <h4 className="step-title">{section.title}</h4>
+              </div>
+
+              <div className="step-commands">
+                <div className="command-list">
+                  {section.commands.map((cmd, idx) => (
+                    <code key={idx} className="command">{cmd}</code>
+                  ))}
+                </div>
+              </div>
+
+              <div className="step-rationale">
+                <strong>Rationale:</strong>
+                <p>{section.rationale}</p>
+              </div>
+
+              {section.evidence_notes && (
+                <div className="step-evidence">
+                  <strong>Evidence & Verification:</strong>
+                  <p>{section.evidence_notes}</p>
+                </div>
+              )}
+            </div>
+          ))}
+
+          {implementationSteps.map((step) => (
             <div key={step.id} className="documentation-step">
               <div className="step-header">
                 <span className="step-number">Step {step.step_number}</span>
