@@ -32,7 +32,7 @@ export default function ProjectDocumentation({ projectId }: ProjectDocumentation
     }
   }
 
-  const overviewSections = steps.filter(step => step.step_number === 0)
+  const overviewSections = steps.filter(step => step.step_number <= 0).sort((a, b) => a.step_number - b.step_number)
   const implementationSteps = steps.filter(step => step.step_number > 0)
 
   function formatDocumentationText() {
