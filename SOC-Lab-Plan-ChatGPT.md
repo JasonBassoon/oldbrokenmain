@@ -254,10 +254,12 @@ Internet
     │
     ├─[NAT/virbr0]──► pfSense WAN (vtnet0)
                            │
-                           └─[socnet/10.10.10.0/24]──► pfSense LAN (vtnet1)
+                           └─[socnet/10.10.10.0/24]──► pfSense LAN (vtnet1) - 10.10.10.1
                                                               │
-                                                              ├─► Elastic Server (10.10.10.10)
+                                                              ├─► Ubuntu Server / Elastic (10.10.10.103)
                                                               ├─► Windows DC (10.10.10.20)
                                                               ├─► Windows Client (10.10.10.30)
-                                                              └─► Kali Linux (10.10.10.40)
+                                                              └─► Kali Linux (10.10.10.104)
 ```
+
+**Finalized Network Architecture Note:** This topology reflects the baseline network architecture. Pre-migration references to 192.168.122.253 are deprecated. Current finalized addressing uses 10.10.10.0/24 with pfSense at 10.10.10.1, Ubuntu Server at 10.10.10.103, and Kali Linux at 10.10.10.104.

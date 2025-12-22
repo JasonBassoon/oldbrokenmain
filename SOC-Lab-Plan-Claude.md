@@ -4,6 +4,8 @@
 
 This is an optimized SOC lab implementation plan for your Dell XPS 9320 with 16 GB RAM running Ubuntu. This plan improves upon the baseline by adding phased deployment, resource optimization strategies, snapshot management, and comprehensive attack simulation scenarios.
 
+**Finalized Network Architecture:** This plan reflects the baseline network architecture using Internal LAN 10.10.10.0/24 with pfSense at 10.10.10.1, Ubuntu Server at 10.10.10.103, and Kali Linux at 10.10.10.104. Pre-migration references to 192.168.122.253 are deprecated.
+
 **Strategic Windows Delay:** Windows ISOs have time-limited evaluation licenses (180 days for Server, 90 days for Win10/11). This plan delays Windows downloads and deployment until Phase 5, allowing you to build and validate your core infrastructure (hypervisor, networking, SIEM, attack platform) first. This maximizes your Windows evaluation period and reduces pressure during the learning process.
 
 ## System Analysis
@@ -41,9 +43,10 @@ Your system can comfortably handle this lab with the following optimizations:
         ┌─────────────┼─────────────┬─────────────┐
         │             │             │             │
    ┌────▼────┐   ┌───▼────┐   ┌───▼─────┐  ┌───▼────┐
-   │ Elastic │   │Windows │   │ Windows │  │  Kali  │
-   │  SIEM   │   │   DC   │   │ Client  │  │ Attack │
-   │.10      │   │.20     │   │.30      │  │.40     │
+   │ Ubuntu  │   │Windows │   │ Windows │  │  Kali  │
+   │ Server/ │   │   DC   │   │ Client  │  │ Attack │
+   │ Elastic │   │.20     │   │.30      │  │.104    │
+   │.103     │   │        │   │         │  │        │
    └─────────┘   └────────┘   └─────────┘  └────────┘
 ```
 
@@ -103,7 +106,7 @@ Attack (Kali) → Target (Win Client) → Logs → Elastic SIEM
 - vCPU: 4 (host-passthrough)
 - RAM: 5 GB (4 GB minimum, 5 GB optimal)
 - Disk: 60 GB (virtio, SSD strongly recommended)
-- NIC: socnet (10.10.10.10/24)
+- NIC: socnet (10.10.10.103/24)
 - OS: Ubuntu Server 22.04 LTS (minimal install)
 
 **Software Stack:**
@@ -201,7 +204,7 @@ Attack (Kali) → Target (Win Client) → Logs → Elastic SIEM
 - vCPU: 2
 - RAM: 2 GB
 - Disk: 30 GB (thin provisioned)
-- NIC: socnet (10.10.10.40/24)
+- NIC: socnet (10.10.10.104/24)
 - OS: Kali Linux 2024.x
 
 **Pre-installed Tools:**
@@ -377,10 +380,10 @@ cat > socnet.xml << 'EOF'
   <ip address='10.10.10.1' netmask='255.255.255.0'>
     <dhcp>
       <range start='10.10.10.100' end='10.10.10.200'/>
-      <host mac='52:54:00:01:00:10' name='elastic' ip='10.10.10.10'/>
+      <host mac='52:54:00:01:01:03' name='ubuntu-server' ip='10.10.10.103'/>
       <host mac='52:54:00:01:00:20' name='dc' ip='10.10.10.20'/>
       <host mac='52:54:00:01:00:30' name='client' ip='10.10.10.30'/>
-      <host mac='52:54:00:01:00:40' name='kali' ip='10.10.10.40'/>
+      <host mac='52:54:00:01:01:04' name='kali' ip='10.10.10.104'/>
     </dhcp>
   </ip>
 </network>
@@ -557,7 +560,7 @@ sudo apt install -y kibana
 
 # Configure Kibana
 sudo sed -i 's/#server.host: "localhost"/server.host: "0.0.0.0"/' /etc/kibana/kibana.yml
-echo 'server.publicBaseUrl: "http://10.10.10.10:5601"' | sudo tee -a /etc/kibana/kibana.yml
+echo 'server.publicBaseUrl: "http://10.10.10.103:5601"' | sudo tee -a /etc/kibana/kibana.yml
 
 # Start Kibana
 sudo systemctl enable kibana
@@ -567,7 +570,7 @@ sudo systemctl start kibana
 sudo apt install -y elastic-agent
 
 echo "Elastic Stack installation complete!"
-echo "Access Kibana at: http://10.10.10.10:5601"
+echo "Access Kibana at: http://10.10.10.103:5601"
 echo "Default credentials saved in: /etc/elasticsearch/elasticsearch.yml"
 ```
 
@@ -768,8 +771,8 @@ sudo virsh net-list
 
 ### Issue: Can't connect to Elastic/Kibana
 ```bash
-# SSH to Elastic server
-ssh user@10.10.10.10
+# SSH to Ubuntu Server (Elastic)
+ssh user@10.10.10.103
 
 # Check Elasticsearch
 sudo systemctl status elasticsearch
